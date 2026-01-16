@@ -45,7 +45,12 @@ void printHelp() {
             "\n"
             "\nExample Usage: ./garbanzo @ninja /../Testing/ --recursion"
             "\n               ./garbanzo --help"
-            "\n               ./garbanzo --recursion @ninja ninja.txt";
+            "\n               ./garbanzo --recursion @ninja ninja.txt"
+    << endl;
+}
+
+void printVersion() {
+    cout << "Garbanzo 0.1" << endl;
 }
 
 /**
@@ -59,8 +64,9 @@ int workArguments(Arguments arguments, optional<string> search, optional<string>
 
     if (arguments.help) {
         printHelp();
-    }
-    else if (search && dir) {
+    } else if (arguments.version) {
+        printVersion();
+    } else if (search && dir) {
         amount = 1;
     }
 
