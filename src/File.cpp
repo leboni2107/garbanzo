@@ -1,7 +1,5 @@
 #include "../include/File.h"
 
-#include <iostream>
-
 using namespace std;
 
 File::File(string path, Arguments arguments) {

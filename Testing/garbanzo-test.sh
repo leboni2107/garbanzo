@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ITERATIONS=${1:-10}
+
 help=$(../cmake-build-debug/garbanzo --help 2>&1)
 declare -a args
 
@@ -15,7 +17,7 @@ done <<< "$help"
 
 max_combinations=$((1 << ${#args[@]}))
 
-echo "$max_combinations Combinations to test"
+echo "$max_combinations Combinations to test (${ITERATIONS} iterations each)"
 echo ""
 
 for ((i = 0; i < max_combinations; i++)); do
@@ -27,10 +29,18 @@ for ((i = 0; i < max_combinations; i++)); do
     fi
   done;
 
-  start=$(date +%s%6N)
-  ../cmake-build-debug/garbanzo$cmd_args > /dev/null 2>&1
-  end=$(date +%s%6N)
-  duration=$((end - start))
-  echo "Combination ${i}: ${duration}μs -${cmd_args}"
+  total_duration=0
+
+  for ((iter = 0; iter < ITERATIONS; iter++)); do
+    start=$(date +%s%6N)
+    ../cmake-build-debug/garbanzo$cmd_args > /dev/null 2>&1
+    end=$(date +%s%6N)
+    duration=$((end - start))
+    total_duration=$((total_duration + duration))
+  done
+
+  avg_duration=$((total_duration / ITERATIONS))
+
+  echo "Combination ${i}: ${avg_duration}μs (avg of ${ITERATIONS}) | ${cmd_args}"
 
 done;

@@ -8,7 +8,7 @@
 #include "include/File.h"
 
 using namespace std;
-
+2
 #pragma region Menus
 void printHelp() {
     cout << "Usage: @[SEARCH] [DIRECTORY, FILE] [OPTIONS] (Not in a specific order!)"
@@ -34,8 +34,6 @@ void printVersion() {
 }
 #pragma endregion Menus
 
-/** @return Input search, dir from argv
-*/
 tuple<optional<string>, optional<string>> getInput(int argc, char* argv[]) {
     string search = "", dir;
 
@@ -77,10 +75,7 @@ int workArguments(Arguments arguments, optional<string> search, optional<string>
 int main(int argc, char* argv[]) {
     Arguments arguments(argc, argv);
     auto [search, dir] = getInput(argc, argv);
-
     int amount = workArguments(arguments, search, dir);
-
     cout << "Amount: " << amount << endl;
-
     exit(amount);
 }

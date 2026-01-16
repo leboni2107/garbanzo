@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include "Arguments.h"
-
 #pragma once
 
 using namespace std;
