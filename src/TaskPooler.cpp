@@ -32,9 +32,19 @@ std::vector<std::vector<File>> TaskPooler::poolTasks(const std::vector<File>& ta
     int actual_pools = std::min(amount, static_cast<int>(tasks.size()));
     pooledTasks.resize(actual_pools);
 
-    for (size_t i = 0; i < tasks.size(); i++) {
-        int pool_index = i % actual_pools;
-        pooledTasks[pool_index].push_back(tasks[i]);
+    size_t chunk_size = tasks.size() / actual_pools;
+    size_t remainder = tasks.size() % actual_pools;
+
+    size_t start = 0;
+    for (int i = 0; i < actual_pools; i++) {
+        size_t current_chunk_size = chunk_size + (i < remainder ? 1 : 0);
+
+        pooledTasks[i].assign(
+            tasks.begin() + start,
+            tasks.begin() + start + current_chunk_size
+        );
+
+        start += current_chunk_size;
     }
 
     return pooledTasks;
