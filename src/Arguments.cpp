@@ -17,7 +17,6 @@ Arguments::Arguments(int argc, char *argv[]) {
             {"--extension-help", 8}
         };
 
-
         for (int i = 0; i < argc; i++) {
             auto it = optionMap.find(argv[i]);
 
@@ -29,7 +28,21 @@ Arguments::Arguments(int argc, char *argv[]) {
                     case 4: file_content = false; break;
                     case 5: file_name = false; break;
                     case 6: case_sensitive = false; break;
-                    case 7: extensions.extension_sensitive = true; break;
+                    case 7: extensions.extension_sensitive = true;
+                        if (i + 1 < argc) {
+                            string extArgs = "";
+                            if (i + 1 < argc && argv[i + 1][0] != '-') {
+                                extArgs += argv[i + 1];
+                                i++;
+                                while (i + 1 < argc && argv[i + 1][0] != '-' && argv[i + 1][0] != '@') {
+                                    extArgs += " " + string(argv[i + 1]);
+                                    i++;
+                                }
+
+                                extensions.readExtensions(extArgs);
+                            }
+                        }
+                        break;
                     case 8: extensions.extension_help = true; break;
                 }
             }

@@ -112,11 +112,16 @@ tuple<optional<string>, optional<string>> splitInput(int argc, char* argv[]) {
 int workArguments(Arguments arguments, optional<string> search, optional<string> dir) {
     int amount = 0;
 
-    if (arguments.help) {
+    if (arguments.help)
         printHelp();
-    } else if (arguments.version) {
+
+    if (arguments.version)
         printVersion();
-    } else if (search.has_value() && dir.has_value()) {
+
+    if (arguments.extensions.extension_help)
+        printExtensionHelp();
+
+    if (search.has_value() && dir.has_value()) {
         auto filePaths = collectFilePaths(dir.value(), arguments);
 
         if (!arguments.case_sensitive) {
@@ -142,6 +147,10 @@ int main(int argc, char* argv[]) {
     int amount = workArguments(arguments, search, dir);
 
     cout << amount << endl;
+
+    for (int i = 0; i < arguments.extensions.extensions.size(); i++) {
+        cout << arguments.extensions.extensions[i] << endl;
+    }
 
     exit(amount);
 }
