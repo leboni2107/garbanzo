@@ -9,4 +9,6 @@ add_executable(garbanzo main.cpp
         src/File.cpp
         include/File.h
         src/Extensions.cpp
-        include/Extensions.h)
+        include/Extensions.h
+        src/TaskPooler.cpp
+        include/TaskPooler.h)

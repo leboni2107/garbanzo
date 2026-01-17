@@ -8,6 +8,7 @@
 
 #include "include/Arguments.h"
 #include "include/File.h"
+#include "include/TaskPooler.h"
 
 using namespace std;
 
