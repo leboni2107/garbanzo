@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "include/Arguments.h"
 #include "include/File.h"
@@ -14,7 +16,7 @@ using namespace std;
 
 #pragma region Menus
 void printHelp() {
-    cout << "Usage: @[SEARCH] [DIRECTORY, FILE] [OPTIONS] (Not in a specific order!)"
+    cerr << "Usage: @[SEARCH] [DIRECTORY, FILE] [OPTIONS] (Not in a specific order!)"
             "\n   or: [-h, --help]"
             "\nSearch for a string within files in a directory"
             "\n"
@@ -34,10 +36,10 @@ void printHelp() {
 }
 
 void printExtensionHelp() {
-    cout << "Usage: --extension-sensitive [MODE] [EXTENSIONS]"
+    cerr << "Usage: --extension-sensitive [MODE] [EXTENSIONS]"
             "\n   or: -e [MODE] [EXTENSIONS]"
             "\n"
-            "\nMode: E: ignores given extensions"
+            "\nMode: E: ignores given extencoutsions"
             "\n      I: only reads given extensions"
             "\n"
             "\nExtension Syntax: Seperated by ','. Space isnt needed"
@@ -49,10 +51,16 @@ void printExtensionHelp() {
 }
 
 void printVersion() {
-    cout << "Garbanzo 0.1"
+    cerr << "Garbanzo 0.1"
     << endl;
 }
 #pragma endregion Menus
+
+bool isStdInput() {
+    struct stat stats;
+    fstat(STDIN_FILENO, &stats);
+    return S_ISFIFO(stats.st_mode) || S_ISREG(stats.st_mode);
+}
 
 vector<string> collectFilePaths(string dir, Arguments arguments) {
     vector<string> filePaths;
@@ -169,9 +177,55 @@ int workArguments(Arguments arguments, optional<string> search, optional<string>
 int main(int argc, char* argv[]) {
     Arguments arguments(argc, argv);
     auto [search, dir] = splitInput(argc, argv);
-    int amount = workArguments(arguments, search, dir);
+    int amount = 0;
+
+    // Check if we have piped input and no directory specified
+    if (isStdInput() && !dir.has_value() && search.has_value()) {
+        string line;
+        vector<string> pipedPaths;
+
+        // Read all piped file paths
+        while (getline(cin, line)) {
+            if (!line.empty()) {
+                pipedPaths.push_back(line);
+            }
+        }
+
+        if (!pipedPaths.empty()) {
+            string searchStr = search.value();
+            if (!arguments.case_sensitive) {
+                std::transform(searchStr.begin(), searchStr.end(),
+                               searchStr.begin(),
+                               [](unsigned char c){ return std::tolower(c); });
+            }
+
+            TaskPooler taskPooler;
+            vector<File> fileVector;
+
+            for (size_t i = 0; i < pipedPaths.size(); i++) {
+                string ext = arguments.extensions.extractExtension(pipedPaths[i]);
+                if (arguments.extensions.isLegalExtension(ext)) {
+                    File currentFile(pipedPaths[i], arguments);
+                    fileVector.push_back(currentFile);
+
+                    if (fileVector.size() >= 10 || i == pipedPaths.size() - 1) {
+                        taskPooler.addTaskPool(fileVector);
+                        fileVector.clear();
+                    }
+                }
+            }
+
+            if (!fileVector.empty()) {
+                taskPooler.addTaskPool(fileVector);
+            }
+
+            amount = taskPooler.getTotalFindings(arguments, searchStr);
+        }
+    } else {
+        amount = workArguments(arguments, search, dir);
+    }
 
     cout << amount << endl;
 
-    exit(amount);
+    return amount;
 }
